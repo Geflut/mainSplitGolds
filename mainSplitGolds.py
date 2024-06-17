@@ -30,14 +30,15 @@ def parse_time(time_str):
 
 filename = sys.argv[1]          ##Change this to your file path if you like
 
-tree = ET.parse(sys.argv[1])
+tree = ET.parse(filename)
 root = tree.getroot()
     
 segmentBranch = root.find("Segments")
 
 mainSplits = []
 subSplits = []
-mainSplitGolds = {}
+mainSplitGoldsIGT = {}
+mainSplitGoldsRTA = {}
 
 for segment in segmentBranch:
     name = segment.find("Name").text    
@@ -48,42 +49,63 @@ for segment in segmentBranch:
         
 for split in mainSplits:
     splitName = ''
-    bestTime = 0
+    bestIGT = 0
+    bestRTA = 0
     if len(split) > 1:
         splitName = re.search('{.*}',split[-1].find("Name").text).group()
-        timeDico = {}
+        IGTDico = {}
+        RTADico = {}
         for subSplit in split:
             histBranch = subSplit.find("SegmentHistory")
             for timeBranch in histBranch.findall("Time"):
                 gameTimeBranch = timeBranch.find("GameTime")
+                realTimeBranch = timeBranch.find("RealTime")
                 if gameTimeBranch != None:
                     runId = timeBranch.get("id")
                     timeText = gameTimeBranch.text
                     timeFloat = parse_time(timeText).total_seconds()
-                    if runId in timeDico:
-                        timeDico[runId].append(timeFloat)
+                    if runId in IGTDico:
+                        IGTDico[runId].append(timeFloat)
                     else:
-                        timeDico[runId] = [timeFloat]
-        mainSplitTimes = []
-        for runId in timeDico:      
-            if len(timeDico[runId]) == len(split):
-                mainSplitTimes.append(sum(timeDico[runId]))
-        bestTime = timedelta(seconds = min(mainSplitTimes))
+                        IGTDico[runId] = [timeFloat]
+                if realTimeBranch != None:
+                    runId = timeBranch.get("id")
+                    timeText = realTimeBranch.text
+                    timeFloat = parse_time(timeText).total_seconds()
+                    if runId in RTADico:
+                        RTADico[runId].append(timeFloat)
+                    else:
+                        RTADico[runId] = [timeFloat]
+        mainSplitIGTs = []
+        for runId in IGTDico:      
+            if len(IGTDico[runId]) == len(split):
+                mainSplitIGTs.append(sum(IGTDico[runId]))
+        bestIGT = timedelta(seconds = min(mainSplitIGTs))
+        mainSplitRTAs = []
+        for runId in RTADico:      
+            if len(RTADico[runId]) == len(split):
+                mainSplitRTAs.append(sum(RTADico[runId]))
+        bestRTA = timedelta(seconds = min(mainSplitRTAs))
+        
         
     else:
         splitName = split[0].find("Name").text
-        bestTime = parse_time(split[0].find("BestSegmentTime").find("GameTime").text)
+        bestIGT = parse_time(split[0].find("BestSegmentTime").find("GameTime").text)
+        bestRTA = parse_time(split[0].find("BestSegmentTime").find("RealTime").text)
 
-    mainSplitGolds[splitName] = bestTime
+    mainSplitGoldsIGT[splitName] = bestIGT
+    mainSplitGoldsRTA[splitName] = bestRTA
     
-txtToSave = ""
-for name in mainSplitGolds:
-    txtToSave += name + "\t" + str(mainSplitGolds[name]) + "\n"
+txtToSave = "splitName \t RTA \t IGT\n"
+for name in mainSplitGoldsIGT:
+    txtToSave += name + "\t" + str(mainSplitGoldsRTA[name]) + "\t" + str(mainSplitGoldsIGT[name]) + "\n"
 
 
-SOB = timedelta(seconds = sum([mainSplitGolds[name].total_seconds() for name in mainSplitGolds]))
+SOB_IGT = timedelta(seconds = sum([mainSplitGoldsIGT[name].total_seconds() for name in mainSplitGoldsIGT]))
+SOB_RTA = timedelta(seconds = sum([mainSplitGoldsRTA[name].total_seconds() for name in mainSplitGoldsRTA]))
 print(txtToSave)
-print("main split SOB:\t"+str(SOB))
+print("main split SOB RTA:\t"+str(SOB_RTA))
+print("main split SOB IGT:\t"+str(SOB_IGT))
         
 with open("MainSplitGold.txt",'w') as file:
     file.write(txtToSave)       
