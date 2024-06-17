@@ -4,6 +4,6 @@ This python script take as parameter a Livesplit file (.lss) and extract your be
 Displays each main split PB, and the corresponding SOB.
 Save the times in "MainSplitGold.txt"
 
-Launch from your favorite python environement with the command:
+Launch from your favorite python environment with the command:
 
 python mainSplitGold.py "filePath"
