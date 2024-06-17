@@ -10,5 +10,5 @@ python mainSplitGold.py "filePath"
 
 
 Warning:
-Will probably not work if several splits avec the same name.
-If a main segment has never been finished and does not have a full time, the scripr will use 0 as best time. 
+Will probably not work if several splits have the same name.
+If a main segment has never been finished and does not have a full time, the script will use 0 as best time. 
