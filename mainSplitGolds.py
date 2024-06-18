@@ -40,7 +40,7 @@ subSplits = []
 mainSplitGoldsIGT = {}
 mainSplitGoldsRTA = {}
 
-for segment in segmentBranch:
+for segment in segmentBranch:                                                   #group the splits in main segments
     name = segment.find("Name").text    
     subSplits.append(segment)
     if name[0] != '-':
@@ -52,12 +52,16 @@ for split in mainSplits:
     bestIGT = 0
     bestRTA = 0
     if len(split) > 1:
-        splitName = re.search('{.*}',split[-1].find("Name").text).group()
+        nameSearch = re.search('^{(?P<name>.*)}',split[-1].find("Name").text)    #Looks for the main split name in brackets
+        if nameSearch != None:
+            splitName = nameSearch.groupdict()['name']
+        else:
+            splitName = split[-1].find("Name").text
         IGTDico = {}
         RTADico = {}
-        for subSplit in split:
+        for subSplit in split:                                                  #Times for each subsplit are grouped by run id
             histBranch = subSplit.find("SegmentHistory")
-            for timeBranch in histBranch.findall("Time"):
+            for timeBranch in histBranch.findall("Time"):                       
                 gameTimeBranch = timeBranch.find("GameTime")
                 realTimeBranch = timeBranch.find("RealTime")
                 if gameTimeBranch != None:
@@ -78,7 +82,7 @@ for split in mainSplits:
                         RTADico[runId] = [timeFloat]
         mainSplitIGTs = []
         for runId in IGTDico:      
-            if len(IGTDico[runId]) == len(split):
+            if len(IGTDico[runId]) == len(split):                               #Only considers the runs that have a time for all subsplit in the segment
                 mainSplitIGTs.append(sum(IGTDico[runId]))
         bestIGT = timedelta(seconds = min(mainSplitIGTs))
         mainSplitRTAs = []
@@ -88,7 +92,7 @@ for split in mainSplits:
         bestRTA = timedelta(seconds = min(mainSplitRTAs))
         
         
-    else:
+    else:                                                                               #Directly take the gold if there is no subsplits
         splitName = split[0].find("Name").text
         bestIGT = parse_time(split[0].find("BestSegmentTime").find("GameTime").text)
         bestRTA = parse_time(split[0].find("BestSegmentTime").find("RealTime").text)
@@ -107,7 +111,7 @@ print(txtToSave)
 print("main split SOB RTA:\t"+str(SOB_RTA))
 print("main split SOB IGT:\t"+str(SOB_IGT))
         
-with open("MainSplitGold.txt",'w') as file:
+with open("MainSplitGolds.txt",'w') as file:
     file.write(txtToSave)       
         
         
