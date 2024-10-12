@@ -11,7 +11,7 @@ import sys
 from datetime import timedelta
 
 
-regex = re.compile(r'((?P<hours>\d+?):)?((?P<minutes>\d+?):)?((?P<seconds>(\d+.\d+)?)$)?')
+regex = re.compile(r'((?P<hours>\d+?):)?((?P<minutes>\d+?):)?((?P<seconds>(\d+.?\d+)?)$)?')
 
 
 def parse_time(time_str):
